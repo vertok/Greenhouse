@@ -164,8 +164,8 @@ class DatabaseOperations:
         data = response.json()
         tz = pytz.timezone(data['timezone'])
         local_time = server_time.astimezone(tz)
-        self.log.info("IP Address: %s", ip_address)
-        self.log("Local time: %s", local_time)
+        local_time = local_time.strftime('%Y-%m-%d %H:%M:%S')
+        self.log.info("Local time: %s on server: %s", local_time, ip_address)
         return local_time
 
     def close_connection(self) -> None:
@@ -188,7 +188,10 @@ def parse_args() -> argparse.Namespace:
     argparse.Namespace: Parsed command-line arguments.
     """
     parser = argparse.ArgumentParser(description='Database Operations')
-    # Add arguments specific to your database operations here (if any)
+    parser.add_argument('--verbose', type=str.upper,
+                        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+                        default='INFO',
+                        help='Set the logging level (case-insensitive)')
     args = parser.parse_args()
     return args
 
@@ -198,12 +201,11 @@ if __name__ == "__main__":
     db_ops = DatabaseOperations()
     try:
         db_ops.create_database()
-        # Example usage:
         for _ in range(10):
             temperature, humidity = db_ops.read_sensor()
             db_ops.save_measurement(temperature, humidity)
             log.info("data saved in db successfully")
-            time.sleep(5)
+            time.sleep(1)
         # Printing generated table
         db_ops.print_database()
 

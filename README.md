@@ -4,6 +4,13 @@
 
 This project aims to commission and enhance an existing greenhouse control system for **Floristik GmbH**. The initial system provides basic temperature monitoring using a DHT11 sensor and displays the temperature on a 7-segment LED display. However, it is currently not operational.
 
+## Project Usage
+
+1. 
+First please install required python3 modules:
+pip install -r requirements.txt #todo
+
+
 ## Key Tasks
 
 The project involves the following key tasks:
