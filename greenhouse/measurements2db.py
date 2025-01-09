@@ -22,13 +22,13 @@ class DatabaseOperations:
         conn (Optional[sqlite3.Connection]): Database connection object.
     """
     DATABASE_FILE: str = "measurements.db"
-    TIME_SERVER: str = '10.254.5.115'
+    TIME_SERVER: str = '216.239.35.0' # '10.254.5.115'
 
     def __init__(self) -> None:
         """
         Initializes the DatabaseOperations class with a logger and establishes a database connection.
         """
-        self.log: ColoredLogger = ColoredLogger('data')
+        self.log: ColoredLogger = ColoredLogger(name='data')
         self.conn: Optional[sqlite3.Connection] = None
         self.connect_to_database()
 
@@ -194,7 +194,7 @@ def parse_args() -> argparse.Namespace:
 
 if __name__ == "__main__":
     args = parse_args()
-    log: ColoredLogger = ColoredLogger('data')
+    log: ColoredLogger = ColoredLogger(name='data', verbose_level_str=args.verbose)
     db_ops = DatabaseOperations()
     try:
         db_ops.create_database()
