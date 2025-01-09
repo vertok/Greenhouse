@@ -176,7 +176,17 @@ class DatabaseOperations:
             self.conn.close()
             self.log.info("Database connection closed.")
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
+    """
+    Parses command-line arguments for the database operations script.
+
+    This function defines and parses the command-line arguments required
+    to perform database operations. Modify the argument definitions as
+    needed for your specific database operations.
+
+    Returns:
+    argparse.Namespace: Parsed command-line arguments.
+    """
     parser = argparse.ArgumentParser(description='Database Operations')
     # Add arguments specific to your database operations here (if any)
     args = parser.parse_args()
