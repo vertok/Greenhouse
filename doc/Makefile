@@ -21,3 +21,7 @@ help:
 
 doc:
 	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+# Custom target to build PDF documentation using simplepdf
+pdf:
+	@$(SPHINXBUILD) -M simplepdf "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
