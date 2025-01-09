@@ -1,3 +1,20 @@
+"""
+This module provides a set of operations for interacting with an SQLite database 
+to store and manage sensor data, specifically temperature and humidity measurements. 
+It includes functionalities to establish a database connection, create tables, 
+save sensor readings, and retrieve the current time from an NTP server.
+
+The module uses a `ColoredLogger` for logging messages, providing clear and 
+color-coded output to the console. It is designed to be used as part of a 
+larger application, such as a greenhouse monitoring system, where real-time 
+sensor data needs to be logged and stored in a persistent manner.
+
+Classes:
+    DatabaseOperations: Encapsulates the database operations.
+
+Functions:
+    parse_args: Parses command-line arguments.
+"""
 import argparse
 import sqlite3
 import time
