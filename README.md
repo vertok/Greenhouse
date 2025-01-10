@@ -6,9 +6,16 @@ This project aims to commission and enhance an existing greenhouse control syste
 
 ## Project Usage
 
-1. 
-First please install required python3 modules:
-pip install -r requirements.txt #todo
+1. First please clone the Greenhouse git project via
+   git clone https://github.com/vertok/Greenhouse.git
+2. Jump to project directory via:
+   cd Greenhouse
+3. .\scripts\shell\install_dependencies.sh
+4. .//.venv//Scripts//activate 
+5. Add logging git submodule via:
+   git submodule add https://github.com/vertok/school_logging.git school_logging
+6. Make sure submodule project is on the newest stage via:
+   git submodule update --init --recursive
 
 
 ## Key Tasks
