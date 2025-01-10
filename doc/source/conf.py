@@ -19,7 +19,19 @@ extensions = [
     'sphinx.ext.viewcode',  # To include "view source" links
     'sphinx.ext.napoleon',  # (Optional) For Google/NumPy style docstrings
     'sphinx.ext.autosummary', # (Optional) For summary tables
+    'sphinx_simplepdf',
 ]
+
+simplepdf_vars = {
+    'font-family': 'Times New Roman',
+    'font-size': '12pt',
+    'head-font-size': '14pt',
+    'left-margin': '2.5cm',
+    'right-margin': '2cm',
+    'top-margin': '2cm',
+    'bottom-margin': '2cm',
+    'head-bold': 'true',
+}
 
 templates_path = ['_templates']
 exclude_patterns = []
