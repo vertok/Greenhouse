@@ -3,7 +3,7 @@
 echo "Installing and updating python pip, virtualenv..."
 python -m pip install pip virtualenv --upgrade ;
 
-# Determine the operating system
+echo "Determine the operating system"
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     OS="linux"
 elif [[ "$OSTYPE" == "darwin"* ]]; then
