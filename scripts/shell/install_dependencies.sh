@@ -1,16 +1,29 @@
 #!/bin/bash
 
-echo "installing virtualenv if not exists already..." ;
-python -m virtualenv .venv;
+echo "Installing and updating python pip, virtualenv..."
+python -m pip install pip virtualenv --upgrade ;
 
-echo "activating virtualenv..." ;
-source .venv/Scripts/activate ;
+# Determine the operating system
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    OS="linux"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    OS="macos"
+elif [[ "$OSTYPE" == "cygwin" ]]; then
+    OS="cygwin"
+elif [[ "$OSTYPE" == "msys" ]]; then
+    OS="msys"
+elif [[ "$OSTYPE" == "win32" ]]; then
+    OS="windows"
+else
+  echo "Unsupported operating system."
+  exit 1
+fi
 
-echo "updating pip module..." ;
-python -m pip install pip --upgrade ;
+echo "Activating virtual enviroment..." ;
+python -m virtualenv .venv ;
 
-echo "installing required python libraries..." ;
-.venv/Scripts/python -m pip install -r requirements.txt ;
+echo "Installing python pip, build module for building the package in .venv..." ;
+python -m pip install build --upgrade ;
 
 echo "Virtual environment setup complete." \
 "Please activate it via:" \
