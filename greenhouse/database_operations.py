@@ -28,7 +28,6 @@ from school_logging.log import ColoredLogger
 class DatabaseOperations:
     """
     Provides methods to interact with an SQLite database.
-
     This class encapsulates database operations such as creating a database,
     saving measurements, and handling the database connection. It is designed to
     work with an SQLite database and uses a ColoredLogger instance for logging.
@@ -39,13 +38,13 @@ class DatabaseOperations:
         conn (Optional[sqlite3.Connection]): Database connection object.
     """
     DATABASE_FILE: str = "measurements.db"
-    TIME_SERVER: str = '216.239.35.0' # '10.254.5.115'
+    TIME_SERVER: str = '216.239.35.0'  # Replace with required NTP server '10.254.5.115'
 
-    def __init__(self) -> None:
+    def __init__(self, log: ColoredLogger) -> None:
         """
         Initializes the DatabaseOperations class with a logger and establishes a database connection.
         """
-        self.log: ColoredLogger = ColoredLogger(name='data')
+        self.log: ColoredLogger = log
         self.conn: Optional[sqlite3.Connection] = None
         self.connect_to_database()
 
@@ -88,7 +87,7 @@ class DatabaseOperations:
         except sqlite3.Error as e:
             self.log.error("Error creating table: %s", e)
 
-    def save_measurement(self, temp: str, hum: float) -> None:
+    def save_measurement(self, temp: float, hum: float) -> None:
         """
         Saves a measurement to the database.
 
@@ -196,13 +195,6 @@ class DatabaseOperations:
 def parse_args() -> argparse.Namespace:
     """
     Parses command-line arguments for the database operations script.
-
-    This function defines and parses the command-line arguments required
-    to perform database operations. Modify the argument definitions as
-    needed for your specific database operations.
-
-    Returns:
-    argparse.Namespace: Parsed command-line arguments.
     """
     parser = argparse.ArgumentParser(description='Database Operations')
     parser.add_argument('--verbose', type=str.upper,
@@ -214,8 +206,8 @@ def parse_args() -> argparse.Namespace:
 
 if __name__ == "__main__":
     args = parse_args()
-    log: ColoredLogger = ColoredLogger(name='data', verbose_level_str=args.verbose)
-    db_ops = DatabaseOperations()
+    log: ColoredLogger = ColoredLogger(name='data', verbose=args.verbose)
+    db_ops = DatabaseOperations(log)
     try:
         db_ops.create_database()
         for _ in range(10):
