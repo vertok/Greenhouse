@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0",
+            "build"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "greenhouse"
+version = "0.1.0"
+authors = [
+    {name = "Alexey Obukhov", email = "alexey.obukhov@hotmail.com"},
+]
+description = "A custom logging module with colored output."
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",  # Choose a license
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "ntplib>=0.4.0",
+    "psycopg2-binary>=2.9.10",
+    "pytz>=2024.2",
+    "requests>=2.32.3",
+    "Sphinx>=8.1.3",
+    "sphinx-rtd-theme>=3.0.2",
+    "sphinx-simplepdf>=1.6.0",
+    "school_logging @ git+https://github.com/vertok/school_logging.git",
+]
+
+[project.optional-dependencies]
+
+[project.urls]
+"Homepage" = "https://github.com/vertok/greenhouse"
+
+[tool.setuptools.packages.find]
+where = ["."]  # This is where we indicate the root is .
+include = ["greenhouse*"]
+
+[entry]
+greenhouse = 'greenhouse.main:main'
