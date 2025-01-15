@@ -25,11 +25,12 @@ LCD_I2C_ADDRESS = 0x21  # I2C address of the LCD
 DHT11_PIN = 4          # GPIO pin connected to the DHT11 sensor
 SEVEN_SEGMENT_I2C_ADDRESS = 0x70  # I2C address of the 7-segment display
 DATABASE_FILE: str = "measurements.db"
-TIME_SERVER: str = 'pool.ntp.org'  # NTP server to use
+TIME_SERVER: str = '10.254.5.115'  # NTP server to use
+NUM_ITERATIONS = 10  # Number of iterations for data collection
 
 # --- Globals ---
 log = None  # Global logger instance
-temperature, humidity = 0.0, 0.0 # Initialize global temperature and humidity
+temperature, humidity = 0.0, 0.0  # Initialize global temperature and humidity
 
 # --- Database Operations ---
 class DatabaseOperations:
@@ -104,7 +105,7 @@ class DatabaseOperations:
             self.log.error("Database connection is not established.")
             return
 
-        ntp_time = self.get_ntp_time(TIME_SERVER)
+        ntp_time = self.get_ntp_time(TIME_SERVER) # Use the configured TIME_SERVER
         if ntp_time is None:
             self.log.error("Could not get time from NTP server. Measurement not saved.")
             return
@@ -158,7 +159,7 @@ class DatabaseOperations:
             row_str = " | ".join(f"{value:<{width}}" for value, width in zip(row, column_widths))
             self.log.info(row_str)
 
-    def get_ntp_time(self, ip_address: str) -> Optional[datetime]:
+    def get_ntp_time(self, ip_address: str) -> Optional[str]:
         """
         Fetches the server time from the given IP address and converts it to the local time zone.
 
@@ -166,22 +167,35 @@ class DatabaseOperations:
         ip_address (str): The IP address of the NTP server.
 
         Returns:
-        datetime
+        str: The local time in the format 'YYYY-MM-DD HH:MM:SS' or None if an error occurs.
         """
         try:
-          client = ntplib.NTPClient()
-          response = client.request(ip_address, version=3)
-          server_time = datetime.fromtimestamp(response.tx_time, timezone.utc)
-          # Fetch the time zone for the IP address using a free service
-          response = requests.get(f"http://ip-api.com/json/{ip_address}")
-          data = response.json()
-          tz = pytz.timezone(data['timezone'])
-          local_time = server_time.astimezone(tz)
-          local_time = local_time.strftime('%Y-%m-%d %H:%M:%S')
-          self.log.info("Local time: %s on server: %s", local_time, ip_address)
-          return local_time
-        except:
-          self.log.error("error while getting ntp time")
+            client = ntplib.NTPClient()
+            response = client.request(ip_address, version=3)
+            server_time = datetime.fromtimestamp(response.tx_time, timezone.utc)
+
+            # Fetch the time zone for the IP address using a free service
+            try:
+                response = requests.get(f"http://ip-api.com/json/{ip_address}")
+                response.raise_for_status()  # Raise an exception for bad status codes
+                data = response.json()
+                tz = pytz.timezone(data['timezone'])
+            except requests.exceptions.RequestException as e:
+                self.log.warning(f"Error fetching time zone from IP-API: {e}")
+                # Fallback to UTC if the request fails
+                tz = pytz.utc
+
+            local_time = server_time.astimezone(tz)
+            local_time = local_time.strftime('%Y-%m-%d %H:%M:%S')  # Format the time string here
+            self.log.info("Local time: %s on server: %s", local_time, ip_address)
+            return local_time
+
+        except ntplib.NTPException as e:
+            self.log.error(f"Error getting NTP time: {e}")
+            return None
+        except Exception as e:
+            self.log.error(f"An unexpected error occurred: {e}")
+            return None
 
     def close_connection(self) -> None:
         """
@@ -287,7 +301,7 @@ if __name__ == "__main__":
     segment.clear()
     segment.write_display()
 
-    print("Initialization complete.")
+    log.info("Initialization complete.")
 
     # Initialize database operations
     db_ops = DatabaseOperations(log)
@@ -304,21 +318,24 @@ if __name__ == "__main__":
     seven_segment_thread.start()
 
     try:
-        while True:
+        for _ in range(NUM_ITERATIONS):
             # Read sensor data
             temperature, humidity = read_dht11_data(instance)
 
             # Acquire lock before accessing shared variables
             with data_lock:
-                # Save to database using the read values
+                # Save to database using the read values and configured TIME_SERVER
                 db_ops.save_measurement(temperature, humidity)
 
-            log.info("data saved in db successfully")
+            log.info("Data saved in DB successfully")
 
-            time.sleep(60) # Adjust the sleep time as needed
+            time.sleep(2)  # Adjust the sleep time as needed between iterations
+
+        # Print the contents of the database after all iterations
+        db_ops.print_database()
 
     except KeyboardInterrupt:
-        print("Program stopped by user.")
+        log.info("Program stopped by user.")
 
     finally:
         lcd.clear()
@@ -327,4 +344,4 @@ if __name__ == "__main__":
         segment.write_display()
         GPIO.cleanup()
         db_ops.close_connection()
-        print("Resources cleaned up.")
+        log.info("Resources cleaned up.")
