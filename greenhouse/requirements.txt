@@ -1,0 +1,8 @@
+build
+argparse
+virtualenv
+ntplib
+pytz
+requests
+git+https://github.com/vertok/school_logging.git
+

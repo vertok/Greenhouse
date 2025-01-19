@@ -21,6 +21,8 @@ import time
 import ntplib
 import pytz
 import requests
+import RPi.GPIO as GPIO
+import dht11
 from typing import Optional
 from datetime import datetime, timezone
 from school_logging.log import ColoredLogger
@@ -37,8 +39,20 @@ class DatabaseOperations:
         log (ColoredLogger): Logger instance for logging messages.
         conn (Optional[sqlite3.Connection]): Database connection object.
     """
-    DATABASE_FILE: str = "measurements.db"
+    DATABASE_FILE: str = "/app/db_data/measurements.db"
     TIME_SERVER: str = '216.239.35.0'  # Replace with required NTP server '10.254.5.115'
+# --- Configuration ---
+    LCD_COLUMNS = 16
+    LCD_ROWS = 2
+    LCD_I2C_ADDRESS = 0x21  # I2C address of the LCD
+    DHT11_PIN = 4          # GPIO pin connected to the DHT11 sensor
+    SEVEN_SEGMENT_I2C_ADDRESS = 0x70  # I2C address of the 7-segment display
+    # TIME_SERVER: str = 'time.google.com'  # '10.254.5.115'  # NTP server to use
+    NUM_ITERATIONS = 10  # Number of iterations for data collection
+
+    # --- Globals ---
+    log = None  # Global logger instance
+    temperature, humidity = 0.0, 0.0  # Initialize global temperature and humidity
 
     def __init__(self, log: ColoredLogger) -> None:
         """
@@ -116,6 +130,16 @@ class DatabaseOperations:
             self.log.error("Error saving measurement: %s", e)
             self.conn.rollback()
             self.log.critical("Failed to save measurement. Data integrity might be compromised.")
+
+    # --- Sensor Reading ---
+
+    def read_dht11_sensor(self, instance):
+        """Reads data from the DHT11 sensor and returns temperature and humidity."""
+        result = instance.read()
+        while not result.is_valid():
+            result = instance.read()
+            time.sleep(2)
+        return result.temperature, result.humidity
 
     def print_database(self) -> None:
         """
@@ -208,13 +232,19 @@ if __name__ == "__main__":
     args = parse_args()
     log: ColoredLogger = ColoredLogger(name='data', verbose=args.verbose)
     db_ops = DatabaseOperations(log)
+
+    # Initialize GPIO and DHT11 sensor
+    GPIO.setwarnings(False)
+    GPIO.setmode(GPIO.BCM)
+    instance = dht11.DHT11(pin=db_ops.DHT11_PIN)
+
     try:
         db_ops.create_database()
-        for _ in range(10):
-            temperature, humidity = db_ops.read_sensor()
+        for _ in range(db_ops.NUM_ITERATIONS):
+            temperature, humidity = db_ops.read_dht11_sensor(instance)
             db_ops.save_measurement(temperature, humidity)
             log.info("data saved in db successfully")
-            time.sleep(1)
+            time.sleep(2)
         # Printing generated table
         db_ops.print_database()
 
