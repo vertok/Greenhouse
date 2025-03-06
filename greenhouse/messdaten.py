@@ -23,7 +23,6 @@ import ntplib
 import requests
 import pytz
 import RPi.GPIO as GPIO
-import dht11
 import board
 import digitalio
 import busio
