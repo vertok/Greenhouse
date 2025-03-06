@@ -134,7 +134,9 @@ class DatabaseOperations:
     # --- Sensorauslesen ---
 
     def read_dht11_sensor(self, instance, max_attempts=10):
-        """Reads data from the DHT11 sensor and returns temperature and humidity."""
+        """
+        Liest Daten vom DHT11-Sensor und gibt Temperatur und Luftfeuchtigkeit zurück.
+        """
         result = instance.read()
         attempts = 0
         while not result.is_valid() and attempts < max_attempts:
@@ -143,22 +145,22 @@ class DatabaseOperations:
             time.sleep(0.5)
         
         if not result.is_valid():
-            self.log.warning(f"Failed to get valid reading after {max_attempts} attempts")
-            # Return last values or defaults if never read successfully before
+            self.log.warning(f"Keine gültigen Werte nach {max_attempts} Versuchen erhalten")
+            # Letzte Werte oder Standardwerte zurückgeben
             return self.temperature or 20.0, self.humidity or 50.0
         
-        # Store values for future use if sensor fails
+        # Werte für zukünftige Verwendung speichern
         self.temperature = result.temperature
         self.humidity = result.humidity
         return result.temperature, result.humidity
 
     def print_database(self) -> None:
         """
-        Prints the contents of the 'measurements' table to the console
-        without brackets, quotes, or other special characters.
+        Gibt den Inhalt der 'measurements'-Tabelle auf der Konsole aus
+        ohne Klammern, Anführungszeichen oder andere Sonderzeichen.
         """
         if self.conn is None:
-            self.log.error("Database connection is not established.")
+            self.log.error("Datenbankverbindung ist nicht hergestellt.")
             return
 
         cursor = self.conn.cursor()
@@ -166,213 +168,213 @@ class DatabaseOperations:
         rows = cursor.fetchall()
 
         if not rows:
-            self.log.info("The 'measurements' table is empty.")
+            self.log.info("Die Tabelle 'measurements' ist leer.")
             return
 
-        # Get column names
+        # Spaltennamen holen
         column_names = [description[0] for description in cursor.description]
 
-        # Calculate maximum width for each column
+        # Maximale Breite für jede Spalte berechnen
         column_widths = [len(name) for name in column_names]
         for row in rows:
             for i, value in enumerate(row):
                 column_widths[i] = max(column_widths[i], len(str(value)))
 
-        # Print header
+        # Überschrift ausgeben
         header = " | ".join(f"{name:<{width}}" for name, width in zip(column_names, column_widths))
         self.log.info(header)
         self.log.info("-" * len(header))
 
-        # Print rows
+        # Zeilen ausgeben
         for row in rows:
             row_str = " | ".join(f"{value:<{width}}" for value, width in zip(row, column_widths))
             self.log.info(row_str)
 
     def get_ntp_time(self, ip_address: str) -> Optional[str]:
         """
-        Fetches the server time from the given IP address and converts it to the local time zone.
+        Ruft die Serverzeit vom angegebenen NTP-Server ab und konvertiert sie in die lokale Zeitzone.
 
-        Parameters:
-        ip_address (str): The IP address of the NTP server.
+        Parameter:
+        ip_address (str): Die IP-Adresse des NTP-Servers.
 
         Returns:
-        str: The formatted local time.
+        str: Die formatierte lokale Zeit.
         """
         try:
             client = ntplib.NTPClient()
             response = client.request(ip_address, version=3)
             server_time = datetime.fromtimestamp(response.tx_time, timezone.utc)
             
-            # Fetch the time zone for the IP address using a free service
+            # Zeitzone für die IP-Adresse abrufen
             try:
                 response = requests.get(f"http://ip-api.com/json/{ip_address}")
                 data = response.json()
                 tz = pytz.timezone(data['timezone'])
             except Exception as e:
-                self.log.warning(f"Could not determine timezone: {e}. Using UTC.")
+                self.log.warning(f"Konnte Zeitzone nicht bestimmen: {e}. Verwende UTC.")
                 tz = pytz.UTC
                 
             local_time = server_time.astimezone(tz)
             local_time_str = local_time.strftime('%Y-%m-%d %H:%M:%S')
-            self.log.info(f"Local time: {local_time_str} on server: {ip_address}")
+            self.log.info(f"Lokale Zeit: {local_time_str} auf Server: {ip_address}")
             return local_time_str
             
         except Exception as e:
-            self.log.error(f"Error getting NTP time: {e}")
+            self.log.error(f"Fehler beim Abrufen der NTP-Zeit: {e}")
             return None
 
     def close_connection(self) -> None:
         """
-        Closes the database connection.
+        Schließt die Datenbankverbindung.
         """
         if self.conn:
             self.conn.close()
-            self.log.info("Database connection closed.")
+            self.log.info("Datenbankverbindung geschlossen.")
             
     def initialize_lcd(self):
         """
-        Initializes the LCD display.
+        Initialisiert das LCD-Display.
         
         Returns:
-            Character_LCD_I2C: The initialized LCD object.
+            Character_LCD_I2C: Das initialisierte LCD-Objekt.
         """
         try:
             i2c = board.I2C()
             lcd = character_lcd.Character_LCD_I2C(i2c, self.LCD_COLUMNS, self.LCD_ROWS, self.LCD_I2C_ADDRESS)
             lcd.clear()
             lcd.backlight = True
-            self.log.info("LCD initialized successfully with backlight on.")
+            self.log.info("LCD erfolgreich initialisiert mit eingeschalteter Hintergrundbeleuchtung.")
             return lcd
         except Exception as e:
-            self.log.error(f"Failed to initialize LCD: {e}")
-            # Return a mock LCD object to prevent crashes if hardware is not available
+            self.log.error(f"Fehler bei LCD-Initialisierung: {e}")
+            # Mock-LCD-Objekt zurückgeben, um Abstürze zu vermeiden
             return type('MockLCD', (), {'clear': lambda: None, 'message': ''})
 
     def display_on_lcd(self, temperature, humidity):
         """
-        Displays temperature and humidity on the LCD.
+        Zeigt Temperatur und Luftfeuchtigkeit auf dem LCD an.
         
         Args:
-            temperature (float): The temperature to display.
-            humidity (float): The humidity to display.
+            temperature (float): Die anzuzeigende Temperatur.
+            humidity (float): Die anzuzeigende Luftfeuchtigkeit.
         """
         try:
             self.lcd.clear()
-            self.lcd.message = f"Temp: {temperature:.1f}C\nHumidity: {humidity:.1f}%"
-            self.log.info(f"Displayed on LCD: Temp: {temperature:.1f}C, Humidity: {humidity:.1f}%")
+            self.lcd.message = f"Temp: {temperature:.1f}C\nLuftfeuchte: {humidity:.1f}%"
+            self.log.info(f"Angezeigt auf LCD: Temp: {temperature:.1f}C, Luftfeuchte: {humidity:.1f}%")
         except Exception as e:
-            self.log.error(f"Failed to display on LCD: {e}")
+            self.log.error(f"Fehler bei der Anzeige auf LCD: {e}")
 
     def initialize_brightness_sensor(self):
         """
-        Initializes the brightness sensor.
+        Initialisiert den Helligkeitssensor.
         
         Returns:
-            AnalogIn: The initialized analog input for brightness sensor.
+            AnalogIn: Der initialisierte Analogeingang für den Helligkeitssensor.
         """
         try:
             spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)
             cs = digitalio.DigitalInOut(board.D5)
             mcp = MCP.MCP3008(spi, cs)
             channel = AnalogIn(mcp, MCP.P0)
-            self.log.info("Brightness sensor initialized successfully.")
+            self.log.info("Helligkeitssensor erfolgreich initialisiert.")
             return channel
         except Exception as e:
-            self.log.error(f"Failed to initialize brightness sensor: {e}")
-            # Return a mock sensor object to prevent crashes if hardware is not available
+            self.log.error(f"Fehler bei der Initialisierung des Helligkeitssensors: {e}")
+            # Mock-Sensor zurückgeben, um Abstürze zu vermeiden
             return type('MockSensor', (), {'value': 2000})
 
     def read_brightness(self):
         """
-        Reads the brightness value from the sensor.
+        Liest den Helligkeitswert vom Sensor aus.
         
         Returns:
-            int: The brightness value in lux.
+            int: Der Helligkeitswert in Lux.
         """
         try:
-            # First try to read from BH1750 light sensor if available
+            # Zuerst versuchen, vom BH1750-Lichtsensor zu lesen
             try:
-                # BH1750 constants
-                DEVICE = 0x5c  # Standard I2C device address
-                ONE_TIME_HIGH_RES_MODE_1 = 0x20  # High resolution mode
+                # BH1750-Konstanten
+                DEVICE = 0x5c  # Standard I2C-Geräteadresse
+                ONE_TIME_HIGH_RES_MODE_1 = 0x20  # Hochauflösungsmodus
                 
-                # Select bus based on Raspberry Pi version
+                # Bus basierend auf Raspberry Pi-Version auswählen
                 bus = smbus.SMBus(1) if GPIO.RPI_REVISION > 1 else smbus.SMBus(0)
                 
-                # Read data from the sensor
+                # Daten vom Sensor lesen
                 data = bus.read_i2c_block_data(DEVICE, ONE_TIME_HIGH_RES_MODE_1)
                 
-                # Convert to lux
+                # In Lux umrechnen
                 lux = ((data[1] + (256 * data[0])) / 1.2)
                 lux_int = int(round(lux))
                 
-                self.log.info(f"Brightness: {lux_int} lux (BH1750 sensor)")
+                self.log.info(f"Helligkeit: {lux_int} Lux (BH1750-Sensor)")
                 return lux_int
                 
             except Exception as e:
-                # Fall back to the original MCP3008 method if BH1750 fails
-                self.log.warning(f"BH1750 sensor failed: {e}. Falling back to analog sensor.")
+                # Bei Fehler auf die ursprüngliche MCP3008-Methode zurückfallen
+                self.log.warning(f"BH1750-Sensor fehlgeschlagen: {e}. Verwende analogen Sensor.")
                 
-                # Get raw value and voltage from the MCP3008
+                # Rohwert und Spannung vom MCP3008 abrufen
                 raw_value = self.brightness_channel.value
                 voltage = self.brightness_channel.voltage
                 
-                # Convert voltage to lux using the original formula
+                # Spannung in Lux umrechnen mit der ursprünglichen Formel
                 if voltage < 0.1:
-                    lux = 0  # Very dark
+                    lux = 0  # Sehr dunkel
                 elif voltage < 1.0:
-                    lux = int(voltage * 1000)  # Low light
+                    lux = int(voltage * 1000)  # Schwaches Licht
                 else:
-                    lux = int(voltage * 2000)  # Bright light
+                    lux = int(voltage * 2000)  # Helles Licht
                     
-                self.log.info(f"Brightness: {lux} lux (raw: {raw_value}, voltage: {voltage:.2f}V)")
+                self.log.info(f"Helligkeit: {lux} Lux (roh: {raw_value}, Spannung: {voltage:.2f}V)")
                 return lux
                 
         except Exception as e:
-            self.log.error(f"Failed to read brightness: {e}")
-            return 500  # Default value representing moderate light
+            self.log.error(f"Fehler beim Lesen der Helligkeit: {e}")
+            return 500  # Standardwert für moderate Helligkeit
 
     def initialize_matrix_display(self):
         """
-        Initializes the 8x8 LED matrix display using the MAX7219 driver.
+        Initialisiert das 8x8 LED-Matrix-Display mit dem MAX7219-Treiber.
         
         Returns:
-            max7219 device: The initialized matrix display object.
+            max7219 device: Das initialisierte Matrix-Display-Objekt.
         """
         try:
             from luma.led_matrix.device import max7219
             from luma.core.interface.serial import spi, noop
 
-            # Initialize the SPI interface
+            # SPI-Schnittstelle initialisieren
             serial = spi(port=0, device=1, gpio=noop())
             
-            # Create the MAX7219 device
+            # MAX7219-Gerät erstellen
             device = max7219(serial, cascaded=1, block_orientation=90, rotate=0)
             
-            self.log.info("Matrix display initialized successfully.")
+            self.log.info("Matrix-Display erfolgreich initialisiert.")
             return device
             
         except Exception as e:
-            self.log.error(f"Failed to initialize matrix display: {e}")
+            self.log.error(f"Fehler bei der Initialisierung des Matrix-Displays: {e}")
             return None
 
     def display_brightness_symbol(self, brightness):
         """
-        Displays either day or night symbol on the matrix display based on the brightness level.
-        Symbol will remain visible until next call.
+        Zeigt je nach Helligkeitsstufe entweder ein Tages- oder Nachtsymbol auf dem Matrix-Display an.
+        Das Symbol bleibt sichtbar bis zum nächsten Aufruf.
         
         Args:
-            brightness (int): The brightness value from the sensor.
+            brightness (int): Der Helligkeitswert vom Sensor.
         """
-        # Check if matrix was successfully initialized
+        # Prüfen, ob Matrix erfolgreich initialisiert wurde
         if self.matrix is None:
-            self.log.warning("Matrix display is not available. Cannot display symbol.")
+            self.log.warning("Matrix-Display ist nicht verfügbar. Symbol kann nicht angezeigt werden.")
             return
             
         try:
             from luma.core.render import canvas
             
-            # Define sun and moon bitmaps (8x8)
+            # Sonnen- und Mond-Bitmaps (8x8) definieren
             sun_bitmap = [
                 0b00111100,
                 0b01111110,
@@ -395,14 +397,14 @@ class DatabaseOperations:
                 0b00111100,
             ]
             
-            # Adjust threshold based on your observed readings
-            # Since your readings are below 10 in the dark and below 300 with a flashlight
+            # Schwellenwert basierend auf beobachteten Messwerten anpassen
+            # Da unsere Werte im Dunkeln unter 10 und mit Taschenlampe unter 300 liegen
             is_day_mode = brightness >= 100
             
-            # Choose the symbol to display
+            # Symbol zum Anzeigen auswählen
             symbol = sun_bitmap if is_day_mode else moon_bitmap
             
-            # Draw the symbol using the canvas
+            # Symbol mit dem Canvas zeichnen
             with canvas(self.matrix) as draw:
                 for y in range(8):
                     for x in range(8):
@@ -410,99 +412,99 @@ class DatabaseOperations:
                             draw.point((x, y), fill="white")
             
             if is_day_mode:
-                self.log.info(f"Day symbol displayed on matrix (brightness: {brightness})")
+                self.log.info(f"Tagessymbol angezeigt auf Matrix (Helligkeit: {brightness})")
             else:
-                self.log.info(f"Night symbol displayed on matrix (brightness: {brightness})")
+                self.log.info(f"Nachtsymbol angezeigt auf Matrix (Helligkeit: {brightness})")
                 
         except Exception as e:
-            self.log.error(f"Failed to display brightness symbol: {e}")
+            self.log.error(f"Fehler beim Anzeigen des Helligkeitssymbols: {e}")
 
     def initialize_seven_segment(self):
         """
-        Initializes the 7-segment display.
+        Initialisiert das 7-Segment-Display.
         
         Returns:
-            Seg7x4: The initialized 7-segment display object.
+            Seg7x4: Das initialisierte 7-Segment-Display-Objekt.
         """
         try:
             i2c = board.I2C()
             display = adafruit_ht16k33.segments.Seg7x4(i2c, address=self.SEVEN_SEGMENT_I2C_ADDRESS)
-            display.fill(0)  # Clear the display
-            display.brightness = 0.5  # Medium brightness
-            self.log.info("7-segment display initialized successfully.")
+            display.fill(0)  # Display löschen
+            display.brightness = 0.5  # Mittlere Helligkeit
+            self.log.info("7-Segment-Display erfolgreich initialisiert.")
             return display
         except Exception as e:
-            self.log.error(f"Failed to initialize 7-segment display: {e}")
+            self.log.error(f"Fehler bei der Initialisierung des 7-Segment-Displays: {e}")
             return None
 
     def display_measurements_on_seven_segment(self, temperature, humidity):
         """
-        Displays temperature and humidity alternately on the 7-segment display.
-        Shows temperature with 'C' suffix, then humidity with '%' suffix.
+        Zeigt Temperatur und Luftfeuchtigkeit abwechselnd auf dem 7-Segment-Display an.
+        Zeigt Temperatur mit 'C'-Suffix, dann Luftfeuchtigkeit mit '%'-Suffix.
         
         Args:
-            temperature (float): The measured temperature.
-            humidity (float): The measured humidity.
+            temperature (float): Die gemessene Temperatur.
+            humidity (float): Die gemessene Luftfeuchtigkeit.
         """
         if self.seven_segment is None:
-            self.log.warning("7-segment display is not available.")
+            self.log.warning("7-Segment-Display ist nicht verfügbar.")
             return
             
         try:
-            # First show temperature with C suffix
-            self.seven_segment.fill(0)  # Clear the display
+            # Zuerst Temperatur mit C-Suffix anzeigen
+            self.seven_segment.fill(0)  # Display löschen
             
-            # Format temperature for display with one decimal place and 'C' suffix
-            if temperature < 0 and temperature > -10:  # Negative single digit
-                temp_str = f"{temperature:.1f}"  # Will show something like "-5.2"
-            elif temperature < 10 and temperature >= 0:  # Positive single digit
-                temp_str = f"{temperature:.1f}C"  # Will show something like "5.2C"
-            elif temperature < 100:  # Double digit
-                temp_str = f"{temperature:.0f}C"  # Will show something like "25C"
+            # Temperatur für Anzeige formatieren mit einer Dezimalstelle und 'C'-Suffix
+            if temperature < 0 and temperature > -10:  # Negative einstellige Zahl
+                temp_str = f"{temperature:.1f}"  # Zeigt etwa "-5.2"
+            elif temperature < 10 and temperature >= 0:  # Positive einstellige Zahl
+                temp_str = f"{temperature:.1f}C"  # Zeigt etwa "5.2C"
+            elif temperature < 100:  # Zweistellige Zahl
+                temp_str = f"{temperature:.0f}C"  # Zeigt etwa "25C"
             else:
-                temp_str = "99C"  # Max displayable temperature
+                temp_str = "99C"  # Maximal anzeigbare Temperatur
                 
             self.seven_segment.print(temp_str)
-            self.log.info(f"7-segment display showing temperature: {temp_str}")
-            time.sleep(1.0)  # Show temperature for 1 second
+            self.log.info(f"7-Segment-Display zeigt Temperatur: {temp_str}")
+            time.sleep(1.0)  # Temperatur 1 Sekunde lang anzeigen
             
-            # Then show humidity
-            self.seven_segment.fill(0)  # Clear the display
+            # Dann Luftfeuchtigkeit anzeigen
+            self.seven_segment.fill(0)  # Display löschen
             
-            # Format humidity for display with one decimal place and '%' suffix
+            # Luftfeuchtigkeit für Anzeige formatieren mit einer Dezimalstelle und '%'-Suffix
             if humidity < 10:
-                hum_str = f"{humidity:.1f}%"  # Will show something like "5.2%"
+                hum_str = f"{humidity:.1f}%"  # Zeigt etwa "5.2%"
             elif humidity < 100:
-                hum_str = f"{humidity:.0f}%"  # Will show something like "45%"
+                hum_str = f"{humidity:.0f}%"  # Zeigt etwa "45%"
             else:
-                hum_str = "99%"  # Max displayable humidity
+                hum_str = "99%"  # Maximal anzeigbare Luftfeuchtigkeit
                 
             self.seven_segment.print(hum_str)
-            self.log.info(f"7-segment display showing humidity: {hum_str}")
+            self.log.info(f"7-Segment-Display zeigt Luftfeuchtigkeit: {hum_str}")
             
         except Exception as e:
-            self.log.error(f"Failed to display on 7-segment: {e}")
+            self.log.error(f"Fehler bei der Anzeige auf 7-Segment-Display: {e}")
 
     def update_all_displays(self, temp: float, hum: float, brightness: int) -> None:
         """
-        Updates all display devices with the current measurements.
+        Aktualisiert alle Anzeigegeräte mit den aktuellen Messwerten.
         
         Args:
-            temp (float): The measured temperature.
-            hum (float): The measured humidity.
-            brightness (int): The measured brightness level.
+            temp (float): Die gemessene Temperatur.
+            hum (float): Die gemessene Luftfeuchtigkeit.
+            brightness (int): Die gemessene Helligkeit.
         """
         try:
-            # 1. Display on LCD
+            # 1. Anzeige auf LCD
             self.display_on_lcd(temp, hum)
             
-            # 2. Display brightness symbol on matrix display
+            # 2. Helligkeitssymbol auf Matrix-Display anzeigen
             self.display_brightness_symbol(brightness)
             
-            # 3. Display measurements as scrolling text on 7-segment display
+            # 3. Messwerte auf 7-Segment-Display anzeigen
             self.display_measurements_on_seven_segment(temp, hum)
             
-            self.log.info("All displays updated successfully")
+            self.log.info("Alle Anzeigen erfolgreich aktualisiert")
             
         except Exception as e:
-            self.log.error(f"Error updating displays: {e}")
+            self.log.error(f"Fehler beim Aktualisieren der Anzeigen: {e}")
