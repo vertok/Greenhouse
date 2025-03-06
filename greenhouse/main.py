@@ -33,7 +33,7 @@ import dht11
 
 from school_logging.log import ColoredLogger
 
-from greenhouse.database_operations import DatabaseOperations
+from greenhouse.messdaten import MeasurementSystem
 
 def parse_args() -> argparse.Namespace:
     """
@@ -68,7 +68,7 @@ def main():
         # Datenbank-Operationen mit besserer Fehlerbehandlung initialisieren
         db_ops = None
         try:
-            db_ops = DatabaseOperations(log)
+            db_ops = MeasurementSystem(log)
         except Exception as e:
             log.error(f"Fehler bei der Initialisierung der Datenbankoperationen: {e}")
             return

@@ -1,3 +1,20 @@
+"""
+Messdaten-Modul für das Gewächshaus-Steuerungssystem
+
+Dieses Modul stellt die Kernfunktionalität für das Auslesen von Sensordaten,
+die Datenbankverwaltung und die Anzeige von Informationen bereit.
+
+Es bietet Funktionen zum:
+- Erfassen von Temperatur- und Luftfeuchtigkeitswerten über den DHT11-Sensor
+- Messen der Umgebungshelligkeit über einen Lichtsensor
+- Speichern aller Messdaten in einer SQLite-Datenbank
+- Anzeigen der Werte auf verschiedenen Display-Typen (LCD, LED-Matrix, 7-Segment)
+- Verarbeiten und Auswerten der gesammelten Daten
+
+Dieses Modul bildet das Herzstück des Gewächshaus-Überwachungssystems und
+übernimmt die zentrale Steuerung aller Komponenten.
+"""
+
 import time
 import sqlite3
 from typing import Optional
@@ -18,10 +35,31 @@ import smbus  # Importieren von smbus für I2C-Kommunikation
 
 from school_logging.log import ColoredLogger
 
-class DatabaseOperations:
+class MeasurementSystem:
+    """
+    Hauptklasse zur Steuerung des Gewächshaus-Überwachungssystems.
+    
+    Diese Klasse verwaltet die komplette Funktionalität des Gewächshaus-Systems:
+    - Erfassung von Sensor-Messdaten (Temperatur, Luftfeuchtigkeit, Helligkeit)
+    - Speicherung der Daten in einer SQLite-Datenbank
+    - Anzeige von Informationen auf verschiedenen Display-Typen
+    - Überwachung des Tag/Nacht-Zyklus basierend auf Helligkeitsmessungen
+    
+    Die Klasse initialisiert bei ihrer Erstellung alle benötigten Hardware-Komponenten
+    und ermöglicht die zentrale Steuerung sämtlicher Sensoren und Anzeigeelemente.
+    
+    Attribute:
+        conn: Verbindung zur SQLite-Datenbank
+        lcd: LCD-Display-Objekt für Textanzeige
+        matrix: LED-Matrix-Display für grafische Symbole
+        seven_segment: 7-Segment-Display für numerische Werte
+        brightness_channel: Kanal für Helligkeitsmessungen
+        temperature: Aktuelle Temperatur
+        humidity: Aktuelle Luftfeuchtigkeit
+    """
     # --- Konfiguration ---
     DATABASE_FILE: str = "greenhouse.db"
-    TIME_SERVER: str = '216.239.35.0'  # Bei Bedarf NTP-Server anpassen '10.254.5.115'
+    TIME_SERVER: str = '10.254.5.115'  # Bei Bedarf NTP-Server anpassen eg. google '216.239.35.0'
     NUM_ITERATIONS = 3  # Anzahl der Messzyklen für Datenerfassung
     DHT11_PIN = 4  # GPIO-Pin für den DHT11-Sensor
     LCD_COLUMNS = 16
