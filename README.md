@@ -37,7 +37,7 @@ The project involves the following key tasks:
 The project will follow an iterative development approach, with each version building upon the previous one.
 
 -   **Version 1.0:** Focuses on commissioning the initial system and implementing basic temperature/humidity logging to the database.
--   **Subsequent Versions:** Will introduce additional sensors, control features, and enhanced database functionality.
+-   **Version 3.0:** Whole functionality with reading data from different sensors, display various information on oher sensors, log data using logging and save all measurements to db.
 
 ## Client
 
