@@ -14,24 +14,24 @@ import adafruit_character_lcd.character_lcd_i2c as character_lcd
 import adafruit_mcp3xxx.mcp3008 as MCP
 from adafruit_mcp3xxx.analog_in import AnalogIn
 import adafruit_ht16k33.segments
-import smbus  # Add this import at the top with other imports
+import smbus  # Importieren von smbus für I2C-Kommunikation
 
 from school_logging.log import ColoredLogger
 
 class DatabaseOperations:
-    # --- Config ---
+    # --- Konfiguration ---
     DATABASE_FILE: str = "greenhouse.db"
-    TIME_SERVER: str = '216.239.35.0'  # Replace with required NTP server '10.254.5.115'
-    NUM_ITERATIONS = 3  # Number of iterations for data collection
-    DHT11_PIN = 4  # GPIO pin connected to the DHT11 sensor
+    TIME_SERVER: str = '216.239.35.0'  # Bei Bedarf NTP-Server anpassen '10.254.5.115'
+    NUM_ITERATIONS = 3  # Anzahl der Messzyklen für Datenerfassung
+    DHT11_PIN = 4  # GPIO-Pin für den DHT11-Sensor
     LCD_COLUMNS = 16
     LCD_ROWS = 2
-    LCD_I2C_ADDRESS = 0x21  # Adjust this based on your LCD's I2C address
-    SEVEN_SEGMENT_I2C_ADDRESS = 0x70  # I2C address of the 7-segment display
+    LCD_I2C_ADDRESS = 0x21  # I2C-Adresse des LCD-Displays anpassen
+    SEVEN_SEGMENT_I2C_ADDRESS = 0x70  # I2C-Adresse des 7-Segment-Displays
 
-    # --- Globals ---
-    log = None  # Global logger instance
-    temperature, humidity = 0, 0  # Initialize global temperature and humidity
+    # --- Globale Variablen ---
+    log = None  # Globale Logger-Instanz
+    temperature, humidity = 0, 0  # Initialisierung der globalen Temperatur und Luftfeuchtigkeit
 
     def __init__(self, log: ColoredLogger) -> None:
         self.log = log
@@ -44,27 +44,27 @@ class DatabaseOperations:
 
     def connect_to_database(self) -> None:
         """
-        Establishes a connection to the SQLite database.
+        Stellt eine Verbindung zur SQLite-Datenbank her.
         """
         try:
             self.conn = sqlite3.connect('greenhouse.db')
-            self.log.info("Connected to database successfully.")
+            self.log.info("Verbindung zur Datenbank erfolgreich hergestellt.")
         except sqlite3.Error as e:
-            self.log.error("Error connecting to database: %s", e)
+            self.log.error("Fehler beim Verbinden zur Datenbank: %s", e)
             self.conn = None
 
     def create_database(self) -> None:
         """
-        Creates the database table if it doesn't exist.
+        Erstellt die Datenbanktabelle, falls sie nicht existiert.
         """
         try:
             cursor = self.conn.cursor()
 
-            # Check if the table exists
+            # Überprüfen, ob die Tabelle existiert
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='measurements'")
             table_exists = cursor.fetchone() is not None
 
-            # Create the table if it doesn't exist
+            # Tabelle erstellen, falls sie nicht existiert
             if not table_exists:
                 cursor.execute("""
                     CREATE TABLE measurements (
@@ -76,62 +76,62 @@ class DatabaseOperations:
                     )
                 """)
                 self.conn.commit()
-                self.log.info("Table 'measurements' created.")
+                self.log.info("Tabelle 'measurements' wurde erstellt.")
             else:
-                # Check if brightness column exists
+                # Prüfen, ob die Helligkeitsspalte existiert
                 cursor.execute("PRAGMA table_info(measurements)")
                 columns = [column[1] for column in cursor.fetchall()]
                 
-                # Add brightness column if it doesn't exist
+                # Helligkeitsspalte hinzufügen, falls sie nicht existiert
                 if 'brightness' not in columns:
                     cursor.execute("ALTER TABLE measurements ADD COLUMN brightness INTEGER")
                     self.conn.commit()
-                    self.log.info("Added brightness column to existing table.")
+                    self.log.info("Helligkeitsspalte zur bestehenden Tabelle hinzugefügt.")
                 else:
-                    self.log.info("Table 'measurements' already exists with brightness column.")
+                    self.log.info("Tabelle 'measurements' mit Helligkeitsspalte existiert bereits.")
         except sqlite3.Error as e:
-            self.log.error("Error creating/updating table: %s", e)
+            self.log.error("Fehler beim Erstellen/Aktualisieren der Tabelle: %s", e)
 
     def save_measurement(self, temp: float, hum: float) -> Optional[int]:
         """
-        Saves a measurement to the database.
+        Speichert eine Messung in der Datenbank.
 
         Args:
-            temp (float): The measured temperature.
-            hum (float): The measured humidity.
+            temp (float): Die gemessene Temperatur.
+            hum (float): Die gemessene Luftfeuchtigkeit.
         """
         if self.conn is None:
-            self.log.error("Database connection is not established.")
+            self.log.error("Datenbankverbindung ist nicht hergestellt.")
             return
 
         ntp_time = self.get_ntp_time(self.TIME_SERVER)
         if ntp_time is None:
-            self.log.error("Could not get time from NTP server. Measurement not saved.")
+            self.log.error("Konnte keine Zeit vom NTP-Server abrufen. Messung nicht gespeichert.")
             return
 
         try:
-            # Read brightness
+            # Helligkeit auslesen
             brightness = self.read_brightness() 
-            self.log.info(f"Brightness reading: {brightness}")
+            self.log.info(f"Helligkeitsmessung: {brightness}")
             
-            # Save to database
+            # In Datenbank speichern
             cursor = self.conn.cursor()
             cursor.execute(
                 "INSERT INTO measurements (timestamp, temperature, humidity, brightness) VALUES (?, ?, ?, ?)",
                 (ntp_time, temp, hum, brightness)
             )
             self.conn.commit()
-            self.log.info(f"Measurement saved: temperature={temp:.1f}, humidity={hum:.1f}, brightness={brightness} at {ntp_time}")
+            self.log.info(f"Messung gespeichert: Temperatur={temp:.1f}, Luftfeuchtigkeit={hum:.1f}, Helligkeit={brightness} um {ntp_time}")
             
-            return brightness  # Return brightness for display functions to use
+            return brightness  # Helligkeit für Anzeigeaktualisierung zurückgeben
             
         except sqlite3.Error as e:
-            self.log.error(f"Error saving measurement: {e}")
+            self.log.error(f"Fehler beim Speichern der Messung: {e}")
             self.conn.rollback()
-            self.log.critical("Failed to save measurement. Data integrity might be compromised.")
+            self.log.critical("Speichern der Messung fehlgeschlagen. Datenintegrität könnte beeinträchtigt sein.")
             return None
 
-    # --- Sensor Reading ---
+    # --- Sensorauslesen ---
 
     def read_dht11_sensor(self, instance, max_attempts=10):
         """Reads data from the DHT11 sensor and returns temperature and humidity."""
