@@ -43,10 +43,11 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'greenhouse'  # Your project name
+project = 'greenhouse'
 copyright = '2025, Alexey Obukhov'
 author = 'Alexey Obukhov'
-release = '1.0.0'
+version = '3.0.0'
+release = '3.0.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -94,7 +95,6 @@ html_static_path = ['_static']
 
 # -- Path setup --------------------------------------------------------------
 
-# This is crucial for Sphinx to find your school_logging module
 sys.path.insert(0, os.path.abspath('../../'))  # Go up two levels from 'doc/source' to the project root
 sys.path.insert(0, os.path.abspath('../../greenhouse'))  # Path to DB module
 sys.path.insert(0, os.path.abspath('../../school_logging'))  # Path to the 'school_logging' directory

@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Gewächshaus-Steuerungssystem
-===========================
+============================
 
 .. image:: _static/greenhouse_logo.png
    :alt: Gewächshaus Logo
@@ -16,19 +16,86 @@ bietet ein komplettes Überwachungs- und Steuerungssystem für ein Gewächshaus
 mit Fokus auf den Anbau von Hanfblüten für die Pharma- und Teeindustrie.
 
 Projektübersicht
----------------
+----------------
 
 Das Projekt wurde in mehreren Abschnitten entwickelt:
 
-* **Abschnitt 1-2:** Analyse der Steuerung, Blockschaltbild, Sensorspezifikationen
-* **Abschnitt 3:** Temperatur- und Luftfeuchtemessung mit dem DHT11-Sensor
-* **Abschnitt 4:** Erweiterung der Anzeige mit LCD (2x16 Zeichen)
-* **Abschnitt 5:** Integration eines Helligkeitssensors mit Bewertung und Symbolen
-* **Abschnitt 6:** Helligkeitssteuerung mit Relais und Zeitserver-Synchronisation
-* **Abschnitt 7:** Speicherung der Messwerte in einer Datenbank
+* **Abschnitt 1-2:** :ref:`analyse-steuerung`
+* **Abschnitt 3:** :ref:`temperatur-messung`
+* **Abschnitt 4:** :ref:`lcd-display`
+* **Abschnitt 5:** :ref:`helligkeitssensor`
+* **Abschnitt 6:** :ref:`lichtsteuerung`
+* **Abschnitt 7:** :ref:`datenbankspeicherung`
+
+.. _analyse-steuerung:
+
+Analyse der Steuerung
+---------------------
+
+In den ersten beiden Wochen des Projekts wurde eine umfassende Analyse der Steuerungshardware und -software durchgeführt. Dabei entstand ein detailliertes Blockschaltbild, das die gesamte geplante Steuerung aller Projektabschnitte darstellt.
+
+Zudem wurde eine Übersicht über die Messbereiche und Toleranzen aller verwendeten Sensoren erstellt und entsprechende Datenblätter hinzugefügt.
+
+.. _temperatur-messung:
+
+Temperatur- und Luftfeuchtemessung
+----------------------------------
+
+Im dritten Projektabschnitt wurde die Temperaturmessung mit dem Sensor DHT11 und der 7-Segment-LED-Anzeige in Betrieb genommen und im Dauerbetrieb getestet. 
+
+Die Temperaturwerte werden mit ausreichender Genauigkeit angezeigt. Ein entsprechendes Protokoll dokumentiert diesen Prozess.
+
+Im vierten Projektabschnitt wurde der Luftfeuchtesensor des DHT11 integriert. Die Daten dieses Sensors werden mit erfasst und in sinnvoller Genauigkeit angezeigt.
+
+.. _lcd-display:
+
+Erweiterung der Anzeige
+-----------------------
+
+Die erfassten Werte für Temperatur und Luftfeuchte werden zusätzlich zur Siebensegmentanzeige gemeinsam in einem LCD (2 x 16) angezeigt. 
+
+Das LCD-Display bietet eine bessere Lesbarkeit und ermöglicht die gleichzeitige Darstellung beider Messwerte mit Beschriftung.
+
+.. _helligkeitssensor:
+
+Integration des Helligkeitssensors
+----------------------------------
+
+Da die Gärtnerei Hanfblüten zur Teeherstellung und für die Pharmaindustrie anbaut, muss die Beleuchtung für blühenden Hanf sichergestellt werden. Dazu wurde ein Helligkeitssensor in die Steuerung integriert.
+
+Die Helligkeit wird bewertet und die Bewertung mittels verschiedener Symbole auf der Matrixanzeige signalisiert:
+
+* |sun_symbol| **Sonnensymbol**: Zeigt ausreichende Helligkeit an (>100 Lux)
+* |moon_symbol| **Mondsymbol**: Zeigt niedrige Helligkeit an (<100 Lux)
+
+.. |sun_symbol| unicode:: U+2600 .. SUN
+.. |moon_symbol| unicode:: U+263D .. FIRST QUARTER MOON
+
+.. _lichtsteuerung:
+
+Helligkeitssteuerung
+--------------------
+
+Auf Grundlage der bewerteten Helligkeit wurde eine Lichtsteuerung mit Leistungskreis (Relais) implementiert. Dabei wird die aktuelle Tageszeit (Sonnenauf- und -untergang) berücksichtigt.
+
+Die Systemzeit wird kontinuierlich über einen lokalen Zeitserver (10.254.5.115) aktualisiert, um eine präzise zeitgesteuerte Beleuchtung zu gewährleisten.
+
+.. _datenbankspeicherung:
+
+Datenspeicherung
+----------------
+
+Alle gemessenen Werte werden mit Zeitstempel in einer SQLite-Datenbank gespeichert. Dies umfasst:
+
+* Zeitstempel (synchronisiert über NTP)
+* Temperaturwerte
+* Luftfeuchtigkeitswerte
+* Helligkeitswerte
+
+Diese Datenbank ermöglicht eine spätere Auswertung der Umgebungsbedingungen und dient als Grundlage für die Optimierung der Wachstumsbedingungen.
 
 Problemstellung
---------------
+---------------
 
 Das Gewächshaus-Steuerungssystem wurde entwickelt, um folgende Herausforderungen zu lösen:
 
@@ -39,7 +106,7 @@ Das Gewächshaus-Steuerungssystem wurde entwickelt, um folgende Herausforderunge
 * Dauerhafte Dokumentation der Umgebungsbedingungen für Qualitätssicherung
 
 Systemaufbau
------------
+------------
 
 .. figure:: _static/system_diagram.png
    :alt: Systemdiagramm
@@ -49,7 +116,7 @@ Systemaufbau
    Systemdiagramm des Gewächshaus-Steuerungssystems
 
 Hauptfunktionen
---------------
+---------------
 
 Das System umfasst folgende Hauptfunktionen:
 
@@ -63,7 +130,7 @@ Das System umfasst folgende Hauptfunktionen:
 * Umfassende Protokollierung aller Aktivitäten und Fehler
 
 Komponenten
-----------
+-----------
 
 Das Projekt besteht aus folgenden Software-Komponenten:
 
@@ -83,7 +150,7 @@ Hardware-Komponenten:
 * Relais zur Leistungssteuerung der Beleuchtung
 
 Technische Daten
----------------
+----------------
 
 DHT11-Sensor:
 
@@ -119,17 +186,11 @@ Um das Gewächshaus-Projekt zu installieren, folgen Sie diesen Schritten:
 
         pip install -r requirements.txt
 
-3.  Stellen Sie die richtigen Berechtigungen ein:
+3.  Führen Sie das Hauptprogramm aus:
 
     .. code-block:: bash
     
-        sudo usermod -a -G gpio,i2c,spi $USER
-        
-4.  Führen Sie das Hauptprogramm aus:
-
-    .. code-block:: bash
-    
-        python3 -m greenhouse.main --iterations 100 --interval 5
+        python3 -m greenhouse.main --iterations 10 --interval 3
 
 Beispiel für die Verwendung
 ---------------------------
@@ -189,12 +250,46 @@ Matrix-Symbole:
    :maxdepth: 2
    :caption: Inhalt:
 
-   school_logging
    messdaten
 
-Indices und Tabellen
-====================
+Verwendete Abbildungen
+======================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+Diese Dokumentation enthält folgende Abbildungen und Diagramme:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Abbildung
+     - Beschreibung
+   * - .. image:: _static/greenhouse_logo.png
+          :width: 100px
+          :alt: Gewächshaus Logo
+     - Logo des Gewächshaus-Steuerungsprojekts
+   * - .. image:: _static/system_diagram.png
+          :width: 200px
+          :alt: Schaltungsplan
+     - Blockschaltbild des gesamten Steuerungssystems mit allen Komponenten
+   * - |sun_symbol|
+     - Symbol für ausreichende Helligkeit (Tag-Modus) auf der LED-Matrix
+   * - |moon_symbol|
+     - Symbol für geringe Helligkeit (Nacht-Modus) auf der LED-Matrix
+
+API-Dokumentation
+=================
+
+MeasurementSystem
+-----------------
+
+.. autoclass:: greenhouse.messdaten.MeasurementSystem
+   :members:
+   :undoc-members:
+   :exclude-members: datetime, timezone
+
+ColoredLogger
+-------------
+
+.. autoclass:: school_logging.log.ColoredLogger
+   :members:
+   :undoc-members:

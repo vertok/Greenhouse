@@ -5,3 +5,4 @@ MeasurementSystem
    :members:
    :undoc-members:
    :show-inheritance:
+   :exclude-members: datetime, timezone
