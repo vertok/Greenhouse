@@ -13,7 +13,8 @@ This project aims to commission and enhance an existing greenhouse control syste
 3.  Build docker instance via:
     docker build -t greenhouse-app . --debug
 4.  Run freshly created dockerinstance to record database with required measurements under db_data folder via:
-    docker run -v $(pwd)/db_data:/app/db_data --privileged --device /dev/gpiomem --device /dev/i2c-1 greenhouse-app 
+    docker run -v $(pwd)/db_data:/app/db_data --privileged --device /dev/gpiomem --device /dev/i2c-1 greenhouse-app
+5. Or run directly the programm with python main.py (read documentation how to use it)
 
 ## Key Tasks
 
