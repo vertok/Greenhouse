@@ -11,7 +11,7 @@ Dieses Projekt zielt darauf ab, ein bestehendes Gewächshaus-Steuerungssystem f�
 2.  Wechseln Sie zum Projektverzeichnis mit:
     cd Greenhouse
 3.  Installieren Sie das Packet via pip install -e .
-4.  
+4.  Starten Sie das Programm mit: python greehouse/main.py
 5. (um alle entstehende Fragen zu klären lesen Sie die Dokumentation unter doc/build/simplepdf/greenhouse.pdf)
 
 ## Hauptaufgaben
