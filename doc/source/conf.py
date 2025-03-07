@@ -72,17 +72,26 @@ autodoc_default_options = {
 }
 
 simplepdf_vars = {
-    'font-family': 'Times New Roman',
-    'cover-subtitle': 'Dokumentation',
-    'cover-subtitle-color': '#a0b0c0', 
+    'primary': '#336633',  # Example primary color
+    'secondary': '#99CC99', # Example secondary color
+    'cover': '#FFFFFF',  # Cover background color
+    'white': '#FFFFFF',
+    'links': '#336633',
+    'cover-bg': 'url(ihk.jpg) center', #image inclusion
+    'cover-overlay': 'rgba(255, 255, 255, 0.5)', #optional overlay.
+    'top-left-content': 'counter(page)',
+    'cover-title': '"Gewächshaus-Steuerungssystem"', #title
+    'cover-subtitle': '"Technische Dokumentation"', #subtitle
+    'cover-version': '"Version 3.0"', #version
+    'cover-author': '"Alexey Obukhov"', #author
+    'page-margin-left': '2.5cm',
+    'page-margin-right':'2cm',
+    'page-margin-top':'2cm',
+    'page-margin-bottom':'2cm',
+    'font-family': '"Times-Roman"',
     'font-size': '12pt',
-    'head-font-size': '14pt',
-    'left-margin': '2.5cm',
-    'right-margin': '2cm',
-    'top-margin': '2cm',
-    'bottom-margin': '2cm',
-    'head-bold': 'true',
 }
+
 
 templates_path = ['_templates']
 exclude_patterns = []

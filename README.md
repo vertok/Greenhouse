@@ -1,45 +1,43 @@
-# Project: Greenhouse Control System Enhancement for Floristik GmbH
+# Projekt: Gewächshaus-Steuerungssystem für Floristik GmbH
 
-## Project Description
+## Projektbeschreibung
 
-This project aims to commission and enhance an existing greenhouse control system for **Floristik GmbH**. The initial system provides basic temperature monitoring using a DHT11 sensor and displays the temperature on a 7-segment LED display. However, it is currently not operational.
+Dieses Projekt zielt darauf ab, ein bestehendes Gewächshaus-Steuerungssystem für die **Floristik GmbH** in Betrieb zu nehmen und zu erweitern. Das ursprüngliche System bietet grundlegende Temperaturüberwachung mit einem DHT11-Sensor und zeigt die Temperatur auf einer 7-Segment-LED-Anzeige an. Allerdings ist es derzeit nicht betriebsbereit.
 
-## Project Usage
+## Projektnutzung
 
-1.  First please clone the Greenhouse git project via
+1.  Zunächst klonen Sie bitte das Greenhouse-Git-Projekt über:
     git clone https://github.com/vertok/Greenhouse.git
-2.  Jump to project directory via:
+2.  Wechseln Sie zum Projektverzeichnis mit:
     cd Greenhouse
-3.  Build docker instance via:
-    docker build -t greenhouse-app . --debug
-4.  Run freshly created dockerinstance to record database with required measurements under db_data folder via:
-    docker run -v $(pwd)/db_data:/app/db_data --privileged --device /dev/gpiomem --device /dev/i2c-1 greenhouse-app
-5. Or run directly the programm with python main.py (read documentation how to use it)
+3.  Installieren Sie das Packet via pip install -e .
+4.  
+5. (um alle entstehende Fragen zu klären lesen Sie die Dokumentation unter doc/build/simplepdf/greenhouse.pdf)
 
-## Key Tasks
+## Hauptaufgaben
 
-The project involves the following key tasks:
+Das Projekt umfasst folgende Hauptaufgaben:
 
--   **Commissioning:** Bring the existing system into an operational state, enabling basic temperature/humidity monitoring and display.
--   **Expansion:** Iteratively expand the system's capabilities by integrating new sensors (e.g., humidity, soil moisture, light) and actuators (e.g., ventilation, irrigation).
--   **Software Development:** Develop Python scripts to:
-    -   Manage hardware components.
-    -   Implement control logic based on sensor readings.
-    -   Log data to an SQLite database.
--   **Database Integration:** Utilize an SQLite database to store sensor readings for analysis and future use in control algorithms.
--   **Documentation:** Provide comprehensive documentation, including:
-    -   Flowcharts/Structure Charts (PAP)
-    -   Well-commented Python code
-    -   Wiring diagrams and other relevant technical details
+-   **Inbetriebnahme:** Das bestehende System in einen betriebsbereiten Zustand versetzen, um grundlegende Temperatur-/Feuchtigkeitsüberwachung und -anzeige zu ermöglichen.
+-   **Erweiterung:** Schrittweise Erweiterung der Systemfähigkeiten durch Integration neuer Sensoren (z.B. Luftfeuchtigkeit, Bodenfeuchtigkeit, Licht) und Aktoren (z.B. Belüftung, Bewässerung).
+-   **Softwareentwicklung:** Entwicklung von Python-Skripten für:
+    -   Verwaltung der Hardwarekomponenten.
+    -   Implementierung der Steuerungslogik basierend auf Sensorwerten.
+    -   Protokollierung von Daten in einer SQLite-Datenbank.
+-   **Datenbankintegration:** Nutzung einer SQLite-Datenbank zur Speicherung von Sensorwerten für Analysen und zukünftige Verwendung in Steuerungsalgorithmen.
+-   **Dokumentation:** Bereitstellung umfassender Dokumentation, einschließlich:
+    -   Flussdiagramme/Strukturdiagramme (PAP)
+    -   Gut kommentierter Python-Code
+    -   Schaltpläne und andere relevante technische Details
 
-## Development Approach
+## Entwicklungsansatz
 
-The project will follow an iterative development approach, with each version building upon the previous one.
+Das Projekt folgt einem iterativen Entwicklungsansatz, bei dem jede Version auf der vorherigen aufbaut.
 
--   **Version 1.0:** Focuses on commissioning the initial system and implementing basic temperature/humidity logging to the database.
--   **Version 3.0:** Whole functionality with reading data from different sensors, display various information on oher sensors, log data using logging and save all measurements to db.
+-   **Version 1.0:** Konzentration auf die Inbetriebnahme des ursprünglichen Systems und Implementierung grundlegender Temperatur-/Feuchtigkeitsprotokollierung in der Datenbank.
+-   **Version 3.0:** Vollständige Funktionalität mit Datenerfassung von verschiedenen Sensoren, Anzeige verschiedener Informationen auf anderen Sensoren, Protokollierung von Daten mittels Logging und Speicherung aller Messungen in der Datenbank.
 
-## Client
+## Auftraggeber
 
 **Floristik GmbH**
 Kaditzer Straße 4-10
